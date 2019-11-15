@@ -119,6 +119,7 @@ public class PTUI_Client2 extends ConsoleApplication implements Observer<Board> 
     /**
      * Update all GUI Nodes to match the state of the model.
      */
+
     private void refresh() {
         if ( !this.model.isMyTurn() ) {
             this.userOut.println( this.model );
