@@ -19,12 +19,11 @@ import reversi.ReversiException;
 import reversi2.Board;
 import reversi2.NetworkClient;
 import reversi2.Observer;
-import reversi_ptui.ConsoleApplication;
 
 /**
  * This application is the UI for Reversi.
  *
- * @author YOUR NAME HERE
+ * @author Danilo Sosa
  */
 public class GUI_Client2 extends Application implements Observer<Board>  {
     Stage stage;
@@ -80,6 +79,7 @@ public class GUI_Client2 extends Application implements Observer<Board>  {
 
     @Override
     public synchronized void start(Stage mainStage) throws Exception {
+        //HBox and Labels for player notifications
         HBox hb = new HBox();
         Label l = new Label("Bottom Label");
         Label l2 = new Label("Bottom Label2");
@@ -92,26 +92,34 @@ public class GUI_Client2 extends Application implements Observer<Board>  {
         GridPane gp = new GridPane();
 
         int dimension = this.model.getDIM();
+        //Add all the bottuns to the gridpane
         for (int y = 0; y < dimension; y++) {
             for(int x=0; x < dimension; x++){
                 Button b = new Button();
+                //Set black initial pieces
                 if( (x == (dimension/2)-1 || y == (dimension/2)-1) && (x == dimension/2 || y == dimension/2) ){
                     b.setGraphic(new ImageView(black));
+                //set white initial pieces
                 }else if( (x == dimension/2 || y == (dimension/2)-1) && (x == (dimension/2)-1 || y == dimension/2) ){
                     b.setGraphic(new ImageView(white));
+                //after initial pieces are done, add empty buttons
                 }else{
                     b.setGraphic(new ImageView(empty));
                     int finalX = x;
                     int finalY = y;
+                    //set action with similar work as "refresh"
                     b.setOnAction((ActionEvent)->{
+                        //check if is gui turn
                         if(this.model.isMyTurn()){
+                            //validate move
                             if (this.model.isValidMove(finalY, finalX)) {
-                                //this.refresh(finalY, finalX);
                                 this.serverConn.sendMove(finalY, finalX);
                                 b.setGraphic(new ImageView(black));
+                                //show move made in label 1
                                 l.setText("Move: " + finalY + " " + finalX);
                             }
                         }else{
+                            //if is not gui turn show message
                             l.setText("Not your turn");
                             this.userOut.println( this.model );
                             this.userOut.println( this.model.getMovesLeft() + " moves left." );
@@ -150,7 +158,6 @@ public class GUI_Client2 extends Application implements Observer<Board>  {
             }
         }
 
-
         bp.setCenter(gp);
 
         Scene scene = new Scene(bp);
@@ -162,29 +169,6 @@ public class GUI_Client2 extends Application implements Observer<Board>  {
         this.serverConn.startListener();
 
     }
-
-    /*@Override
-    public void go(Scanner userIn, PrintWriter userOut) {
-        this.userIn = userIn;
-        this.userOut = userOut;
-
-        // Connect UI to model. Can't do it sooner because streams not set up.
-        this.model.addObserver( this );
-
-        // Start the network listener thread
-        this.serverConn.startListener();
-
-        // Manually force a display of all board state, since it's too late
-        // to trigger update().
-        this.refresh();
-        while ( this.model.getStatus() == Board.Status.NOT_OVER ) {
-            try {
-                this.wait();
-            }
-            catch( InterruptedException ie ) {}
-        }
-    }*/
-
     @Override
     public void stop() {
         this.userIn.close();
@@ -194,47 +178,6 @@ public class GUI_Client2 extends Application implements Observer<Board>  {
 
     private synchronized void endGame() {
         this.notify();
-    }
-
-    private void refresh(int row, int col) {
-        if ( !this.model.isMyTurn() ) {
-            this.userOut.println( this.model );
-            this.userOut.println( this.model.getMovesLeft() + " moves left." );
-
-            Board.Status status = this.model.getStatus();
-            switch ( status ) {
-                case ERROR:
-                    this.userOut.println( status );
-                    this.endGame();
-                    break;
-                case I_WON:
-                    this.userOut.println( "You won. Yay!" );
-                    this.endGame();
-                    break;
-                case I_LOST:
-                    this.userOut.println( "You lost. Boo!" );
-                    this.endGame();
-                    break;
-                case TIE:
-                    this.userOut.println( "Tie game. Meh." );
-                    this.endGame();
-                    break;
-                default:
-                    this.userOut.println();
-            }
-        }
-        else {
-            boolean done = false;
-            do {
-                this.userOut.print("type move as row◻︎column: ");
-                this.userOut.flush();
-                if (this.model.isValidMove(row, col)) {
-                    this.userOut.println(row + " " + col);
-                    this.serverConn.sendMove(row, col);
-                    done = true;
-                }
-            } while (!done);
-        }
     }
 
     @Override
